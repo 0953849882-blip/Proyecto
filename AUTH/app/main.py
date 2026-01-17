@@ -2,12 +2,23 @@ import time, random
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, EmailStr
 
+from fastapi.middleware.cors import CORSMiddleware  
+
 from .db import init_db, get_conn
 from .security import hash_password, verify_password, create_token
 
 OTP_TTL_SECONDS = 4 * 60  
 
 app = FastAPI(title="Auth OTP (4 min) + JWT")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],   
+    allow_headers=["*"],
+)
+
 init_db()
 
 def seed_demo_user():

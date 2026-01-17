@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sistema – Pago a Proveedores</title>
+
+  <style>
+    :root{
+      --bg1:#070b16;
+      --bg2:#0b1224;
+      --card:#0b1220cc;
+      --border: rgba(255,255,255,.08);
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --red:#ef4444;
+      --shadow: 0 18px 50px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 400px at 18% 10%, rgba(34,197,94,.18), transparent 60%),
+        radial-gradient(900px 400px at 78% 22%, rgba(59,130,246,.18), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+      padding:26px;
+    }
+
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      max-width:1100px;
+      margin:0 auto 16px;
+    }
+    .title{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .title h1{
+      margin:0;
+      font-size:1.45rem;
+      letter-spacing:.2px;
+    }
+    .subtitle{
+      max-width:1100px;
+      margin:0 auto 18px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .badge{
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.25);
+      font-size:.9rem;
+      white-space:nowrap;
+    }
+    .badge .dot{
+      display:inline-block;
+      width:8px;height:8px;border-radius:50%;
+      margin-right:8px;
+      vertical-align:middle;
+      background: var(--red);
+    }
+    .badge.ok .dot{ background: var(--green); }
+
+    .grid{
+      max-width:1100px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:16px;
+    }
+    @media (max-width: 880px){
+      .grid{ grid-template-columns:1fr; }
+      body{ padding:18px; }
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:18px;
+      backdrop-filter: blur(10px);
+    }
+    .card h2{
+      margin:0 0 10px;
+      font-size:1.05rem;
+    }
+    .muted{ color: var(--muted); font-size:.92rem; }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:12px;
+    }
+
+    .btn{
+      border:none;
+      border-radius:12px;
+      padding:10px 14px;
+      font-weight:700;
+      cursor:pointer;
+      transition: transform .06s ease, opacity .15s ease;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{ background: linear-gradient(90deg, #1d4ed8, #2563eb); color:white; }
+    .btn.success{ background: linear-gradient(90deg, #16a34a, #22c55e); color:#06120a; }
+    .btn.danger{ background: linear-gradient(90deg, #b91c1c, #ef4444); color:white; }
+    .btn.ghost{
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border:1px solid var(--border);
+    }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+    .kv{
+      display:grid;
+      grid-template-columns: 160px 1fr;
+      gap:10px;
+      margin-top:10px;
+      font-size:.95rem;
+    }
+    .kv div{
+      padding:10px 12px;
+      border-radius:12px;
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .kv .k{ color: var(--muted); }
+
+    pre{
+      margin:0;
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.06);
+      padding:12px;
+      border-radius:14px;
+      overflow:auto;
+      max-height: 320px;
+      font-size:.88rem;
+      line-height:1.25rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.75);
+      border:1px solid rgba(255,255,255,.12);
+      padding:10px 14px;
+      border-radius: 999px;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .18s ease;
+      box-shadow: var(--shadow);
+      font-size:.92rem;
+    }
+    .toast.show{ opacity:1; }
+  </style>
+</head>
+
+<body>
+
+  <header class="top">
+    <div class="title">
+      <span style="font-size:1.35rem">💳</span>
+      <h1>Sistema – Pago a Proveedores</h1>
+    </div>
+
+    <div id="tokenBadge" class="badge">
+      <span class="dot"></span>
+      <span id="tokenStatus">Token: NO</span>
+    </div>
+  </header>
+
+  <div class="subtitle">
+    Esta pantalla se abre luego del OTP. Desde aquí puedes probar el microservicio de Pago a Proveedores (puerto 8000) con el token JWT.
+  </div>
+
+  <main class="grid">
+
+    <section class="card">
+      <h2>Estado de sesión</h2>
+      <div class="kv">
+        <div class="k">Token en localStorage</div>
+        <div id="tokenValue">—</div>
+
+        <div class="k">Backend Pago-Proveedores</div>
+        <div id="apiValue">—</div>
+      </div>
+
+      <div class="row">
+        <button class="btn ghost" id="btnCopy">Copiar token</button>
+        <button class="btn danger" id="btnLogout">Cerrar sesión</button>
+      </div>
+
+      <p class="muted" style="margin:12px 0 0">
+        Si el token no existe, regresa al login y verifica OTP nuevamente.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Acciones rápidas</h2>
+      <div class="row">
+        <button class="btn primary" id="btnSwagger">Abrir Swagger (8000)</button>
+        <button class="btn success" id="btnTestPago">Probar endpoint /pagos</button>
+        <button class="btn ghost" id="btnListar">Listar /pagos</button>
+      </div>
+
+      <p class="muted" style="margin:12px 0 0">
+        La prueba crea un pago demo. Si te da 401/403 es porque el backend de Pago a Proveedores aún no valida ese token o no está levantado.
+      </p>
+    </section>
+
+    <section class="card" style="grid-column: 1 / -1;">
+      <h2>Respuesta del backend</h2>
+      <pre id="output">—</pre>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const API_PAGO = "http://127.0.0.1:8000";
+  const output = document.getElementById("output");
+  const tokenBadge = document.getElementById("tokenBadge");
+  const tokenStatus = document.getElementById("tokenStatus");
+  const tokenValue = document.getElementById("tokenValue");
+  const apiValue = document.getElementById("apiValue");
+  const toastEl = document.getElementById("toast");
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    setTimeout(()=>toastEl.classList.remove("show"), 2200);
+  }
+
+  function getToken(){
+    return localStorage.getItem("token");
+  }
+
+  function setSessionUI(){
+    const token = getToken();
+    apiValue.textContent = API_PAGO;
+
+    if(token){
+      tokenBadge.classList.add("ok");
+      tokenStatus.textContent = "Token: SI";
+      tokenValue.textContent = token.slice(0, 30) + "..." + token.slice(-18);
+      document.getElementById("btnTestPago").disabled = false;
+      document.getElementById("btnListar").disabled = false;
+      document.getElementById("btnCopy").disabled = false;
+    }else{
+      tokenBadge.classList.remove("ok");
+      tokenStatus.textContent = "Token: NO";
+      tokenValue.textContent = "No hay token. Vuelve a index.html y verifica OTP.";
+      document.getElementById("btnTestPago").disabled = true;
+      document.getElementById("btnListar").disabled = true;
+      document.getElementById("btnCopy").disabled = true;
+    }
+  }
+
+  async function fetchJson(url, opts){
+    const r = await fetch(url, opts);
+    const text = await r.text();
+    let parsed;
+    try{ parsed = JSON.parse(text); } catch { parsed = text; }
+    return { ok: r.ok, status: r.status, data: parsed };
+  }
+
+  document.getElementById("btnSwagger").addEventListener("click", ()=>{
+    window.location.href = API_PAGO + "/docs";
+  });
+
+  document.getElementById("btnTestPago").addEventListener("click", async ()=>{
+    const token = getToken();
+    if(!token){ toast("No hay token"); return; }
+
+    const body = {
+      proveedor: "Proveedor Demo",
+      monto: 50.75,
+      descripcion: "Pago de prueba desde sistema.html"
+    };
+
+    const res = await fetchJson(API_PAGO + "/pagos", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + token
+      },
+      body: JSON.stringify(body)
+    });
+
+    output.textContent = JSON.stringify(res, null, 2);
+    if(res.ok) toast("Pago creado OK");
+    else toast("Error " + res.status);
+  });
+
+  document.getElementById("btnListar").addEventListener("click", async ()=>{
+    const token = getToken();
+    if(!token){ toast("No hay token"); return; }
+
+    const res = await fetchJson(API_PAGO + "/pagos", {
+      method:"GET",
+      headers:{ "Authorization":"Bearer " + token }
+    });
+
+    output.textContent = JSON.stringify(res, null, 2);
+    if(res.ok) toast("Listado OK");
+    else toast("Error " + res.status);
+  });
+
+  document.getElementById("btnCopy").addEventListener("click", async ()=>{
+    const token = getToken();
+    if(!token) return;
+    try{
+      await navigator.clipboard.writeText(token);
+      toast("Token copiado");
+    }catch{
+      toast("No se pudo copiar (permiso del navegador)");
+    }
+  });
+
+  document.getElementById("btnLogout").addEventListener("click", ()=>{
+    localStorage.removeItem("token");
+    toast("Sesión cerrada");
+    setTimeout(()=>window.location.href="./index.html", 500);
+  });
+
+  setSessionUI();
+</script>
+
+</body>
+</html>
