@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login OTP - Microservicios</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+
+  <script>
+    window.APP_CONFIG = {
+      authUrl: "http://127.0.0.1:9000",
+      appUrl: "../frontend/index.html"
+    };
+  </script>
+
+  <header class="top">
+    <h1>🔐 Acceso con OTP</h1>
+    <div class="badge" id="tokenStatus">Token: NO</div>
+  </header>
+
+  <main class="grid">
+
+    <section class="card">
+      <h2>1) Registro</h2>
+      <form id="formRegister">
+        <label>Email</label>
+        <input name="email" type="email" placeholder="correo@ejemplo.com" required />
+
+        <label>Contraseña</label>
+        <input name="password" type="password" placeholder="********" required minlength="4"/>
+
+        <button type="submit">Crear usuario</button>
+      </form>
+      <p class="muted">Solo se registra una vez.</p>
+    </section>
+
+    <section class="card">
+      <h2>2) Login</h2>
+      <form id="formLogin">
+        <label>Email</label>
+        <input name="email" type="email" placeholder="correo@ejemplo.com" required />
+
+        <label>Contraseña</label>
+        <input name="password" type="password" placeholder="********" required minlength="4"/>
+
+        <button type="submit">Validar credenciales</button>
+      </form>
+      <p class="muted">Si es correcto, pide el OTP.</p>
+    </section>
+
+    <section class="card">
+      <h2>3) OTP (4 min)</h2>
+
+      <form id="formOtpRequest">
+        <label>Email</label>
+        <input name="email" type="email" placeholder="correo@ejemplo.com" required />
+        <button type="submit">Pedir OTP</button>
+      </form>
+
+      <div class="otp-demo" id="otpDemoBox">
+        <div><b>Demo OTP:</b> <span id="otpDemo">—</span></div>
+        <div class="muted">En producción esto se envía por correo/SMS.</div>
+      </div>
+
+      <form id="formOtpVerify">
+        <label>Email</label>
+        <input name="email" type="email" placeholder="correo@ejemplo.com" required />
+
+        <label>Código OTP</label>
+        <input name="code" type="text" placeholder="6 dígitos" required minlength="6" maxlength="6" />
+
+        <button type="submit">Verificar OTP y guardar token</button>
+      </form>
+
+      <div class="actions">
+        <button id="btnGoApp" class="secondary" disabled>Ir al sistema</button>
+        <button id="btnLogout" class="danger">Cerrar sesión</button>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
